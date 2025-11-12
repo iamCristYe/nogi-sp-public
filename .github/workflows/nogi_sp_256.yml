@@ -1,0 +1,32 @@
+name: Nogizaka46_256
+
+on:
+  # schedule:
+  #   - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+jobs:
+  Nogizaka46_256:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.8' # Specify the Python version you need
+    
+      - name: Run apt and pip
+        run: |
+          sudo apt update
+          pip install requests
+
+      - name: Clone private repo and run code
+        env:
+            PAT_GITHUB: ${{ secrets.PAT_GITHUB }}
+        run: |
+            git clone https://x-access-token:${PAT_GITHUB}@github.com/iamCristYE/nogi-sp.git
+
+      - name: Run Python script
+        run: |
+          python nogi-sp/test_256_only.py
+          
