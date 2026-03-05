@@ -1,0 +1,59 @@
+name: Gasha Clip
+
+on:
+  workflow_dispatch:
+  #schedule: 
+  #  - cron: "*/15 0-16 * * *"     # every 15 minutes during 23:00 UTC hour - cron: "*/15 0-15 * * *" # every 15 minutes from 00:00 to 15:59 UTC
+
+jobs:
+  gashaclip:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clone Private Repo
+        env:
+          PAT_GITHUB: ${{ secrets.PAT_GITHUB }}
+        run: |
+          git clone https://x-access-token:${PAT_GITHUB}@github.com/iamCristYE/nogi-sp.git
+          cd nogi-sp
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8' # Specify the Python version you need
+   
+      - name: Run Python script
+        run: |
+          pip install requests
+          cd nogi-sp
+          python gashaclip.py
+
+      - name: Commit and Push Changes
+        run: |
+          cd nogi-sp
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add data.json
+          if [ -n "$(git status --porcelain)" ]; then
+            git commit -m "Check Gasha Clip - $(TZ=Asia/Tokyo date)"
+            attempt=0
+            max_attempts=5
+            until [ $attempt -ge $max_attempts ]
+            do
+              if git push; then
+                echo "Changes committed and pushed."
+                break
+              else
+                attempt=$((attempt+1))
+                echo "Push failed. Attempt $attempt/$max_attempts. Running git pull and retrying..."
+                git pull --rebase
+                sleep 10
+              fi
+            done
+            if [ $attempt -eq $max_attempts ]; then
+              echo "Push failed after $max_attempts attempts."
+              exit 1
+            fi
+          else
+            echo "No changes to commit."
+          fi
