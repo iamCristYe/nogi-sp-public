@@ -25,6 +25,7 @@ jobs:
       - name: Run Python script
         run: |
           pip install requests
+          python3 -m pip install -U "yt-dlp[default]"
           cd nogi-sp
           python gashaclip.py
 
